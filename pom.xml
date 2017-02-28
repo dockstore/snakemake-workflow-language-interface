@@ -6,7 +6,7 @@
     <artifactId>dockstore-file-icgc-storage-client-plugin</artifactId>
     <packaging>jar</packaging>
     <name>dockstore-file-icgc-storage-client-plugin</name>
-    <version>0.0.1</version>
+    <version>0.0.2-SNAPSHOT</version>
 
     <properties>
         <plugin.id>${project.artifactId}</plugin.id>
@@ -14,6 +14,7 @@
         <plugin.version>${project.version}</plugin.version>
         <plugin.provider>Denis Yuen</plugin.provider>
         <plugin.dependencies />
+        <github.url>scm:git:git@github.com:dockstore/icgc-storage-client-plugin.git</github.url>
     </properties>
 
     <distributionManagement>
@@ -177,7 +178,7 @@
         <dependency>
             <groupId>io.dockstore</groupId>
             <artifactId>dockstore-file-plugin-parent</artifactId>
-            <version>1.2.0-alpha.3-SNAPSHOT</version>
+            <version>1.2.0-alpha.3</version>
             <!-- !!! VERY IMPORTANT -->
             <scope>provided</scope>
         </dependency>

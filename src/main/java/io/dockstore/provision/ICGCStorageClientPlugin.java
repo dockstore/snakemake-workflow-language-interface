@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
@@ -98,7 +99,7 @@ public class ICGCStorageClientPlugin extends Plugin {
             }
         }
 
-        public boolean uploadTo(String destPath, Path sourceFile, String metadata) {
+        public boolean uploadTo(String destPath, Path sourceFile, Optional<String> metadata) {
             throw new UnsupportedOperationException("ICGC storage client upload not implemented yet");
         }
 
