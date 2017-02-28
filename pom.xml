@@ -6,7 +6,7 @@
     <artifactId>dockstore-file-icgc-storage-client-plugin</artifactId>
     <packaging>jar</packaging>
     <name>dockstore-file-icgc-storage-client-plugin</name>
-    <version>0.0.3-SNAPSHOT</version>
+    <version>0.0.4-SNAPSHOT</version>
 
     <properties>
         <plugin.id>${project.artifactId}</plugin.id>
