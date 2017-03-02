@@ -87,7 +87,7 @@ public class ICGCStorageClientPlugin extends Plugin {
             // file name is the directory and object id is actual file name
             String downloadDir = destination.getParent().toFile().getAbsolutePath();
             String bob = client + " --quiet" + " download" + " --object-id " + sourcePath + " --output-dir " + downloadDir + " --output-layout id";
-            Utilities.executeCommand(bob);
+            Utilities.executeCommand(bob, System.out, System.err);
 
             // downloaded file
             String downloadPath = new File(downloadDir).getAbsolutePath() + "/" + sourcePath;
