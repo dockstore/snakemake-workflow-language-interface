@@ -77,17 +77,20 @@ public class ICGCStorageClientPlugin extends Plugin {
                 client = config.get(DCC_CLIENT_KEY);
             }
 
-            URI objectIdentifier = URI.create(sourcePath);    // throws IllegalArgumentException if it isn't a valid URI
-            String objectId = objectIdentifier.getSchemeSpecificPart().toLowerCase();
+            // ambiguous how to reference synapse files, rip off these kinds of headers
+            String prefix = "icgc://";
+            if (sourcePath.startsWith(prefix)){
+                sourcePath = sourcePath.substring(prefix.length());
+            }
 
             // default layout saves to original_file_name/object_id
             // file name is the directory and object id is actual file name
             String downloadDir = destination.getParent().toFile().getAbsolutePath();
-            String bob = client + " --quiet" + " download" + " --object-id " + objectId + " --output-dir " + downloadDir + " --output-layout id";
+            String bob = client + " --quiet" + " download" + " --object-id " + sourcePath + " --output-dir " + downloadDir + " --output-layout id";
             Utilities.executeCommand(bob);
 
             // downloaded file
-            String downloadPath = new File(downloadDir).getAbsolutePath() + "/" + objectId;
+            String downloadPath = new File(downloadDir).getAbsolutePath() + "/" + sourcePath;
             System.out.println("download path: " + downloadPath);
             Path downloadedFileFileObj = Paths.get(downloadPath);
             try {
