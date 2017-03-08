@@ -73,7 +73,7 @@ public class ICGCStorageClientPlugin extends Plugin {
 
         public boolean downloadFrom(String sourcePath, Path destination) {
             String client = "/icgc/dcc-storage/bin/dcc-storage-client";
-            if (config.contains(DCC_CLIENT_KEY)) {
+            if (config.containsKey(DCC_CLIENT_KEY)) {
                 client = config.get(DCC_CLIENT_KEY);
             }
 

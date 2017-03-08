@@ -33,7 +33,7 @@ Calling on plugin io.dockstore.provision.ICGCStorageClientPlugin$ICGCStorageClie
 This plugin gets configuration information from the following structure in ~/.dockstore/config
 
 ```
-[dcc_storage]
+[dockstore-file-icgc-storage-client-plugin]
 client = /media/large_volume/icgc-storage-client-1.0.23/bin/icgc-storage-client
 ```
 
