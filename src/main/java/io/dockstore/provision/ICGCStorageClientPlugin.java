@@ -17,17 +17,14 @@ package io.dockstore.provision;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import com.google.common.collect.Lists;
-import io.dockstore.common.Utilities;
 import org.apache.commons.lang3.StringUtils;
 import ro.fortsoft.pf4j.Extension;
 import ro.fortsoft.pf4j.Plugin;
@@ -59,7 +56,7 @@ public class ICGCStorageClientPlugin extends Plugin {
     @Extension
     public static class ICGCStorageClientProvision implements ProvisionInterface {
 
-        private static final String DCC_CLIENT_KEY = "client";
+        private static final String DCC_CLIENT_KEY = "client-key";
 
         private Map<String, String> config;
 
@@ -72,38 +69,62 @@ public class ICGCStorageClientPlugin extends Plugin {
         }
 
         public boolean downloadFrom(String sourcePath, Path destination) {
-            String client = "/icgc/dcc-storage/bin/dcc-storage-client";
-            if (config.containsKey(DCC_CLIENT_KEY)) {
-                client = config.get(DCC_CLIENT_KEY);
-            }
+            String clientKey = getKey();
 
             // ambiguous how to reference synapse files, rip off these kinds of headers
             String prefix = "icgc://";
             if (sourcePath.startsWith(prefix)){
                 sourcePath = sourcePath.substring(prefix.length());
+            } else {
+                System.err.println("Scheme not handled by this plugin.");
+                return false;
             }
 
-            // default layout saves to original_file_name/object_id
-            // file name is the directory and object id is actual file name
-            String downloadDir = destination.getParent().toFile().getAbsolutePath();
-            String bob = client + " --quiet" + " download" + " --object-id " + sourcePath + " --output-dir " + downloadDir + " --output-layout id";
-            Utilities.executeCommand(bob, System.out, System.err);
-
-            // downloaded file
-            String downloadPath = new File(downloadDir).getAbsolutePath() + "/" + sourcePath;
-            System.out.println("download path: " + downloadPath);
-            Path downloadedFileFileObj = Paths.get(downloadPath);
             try {
-                Files.move(downloadedFileFileObj, destination);
-                return true;
-            } catch (IOException ioe) {
-                System.err.println(ioe.getMessage());
-                throw new RuntimeException("Could not move input file: ", ioe);
+                Files.createDirectories(destination);
+            } catch (IOException e) {
+                System.err.println("Could not create destination directory: " + destination.toFile().getAbsolutePath());
+                return false;
             }
+            String command = "docker run -e ACCESSTOKEN=" + clientKey + " --mount type=bind,source=" + destination.toFile().getAbsolutePath() + ",target=/data overture/score bin/score-client --quiet download --object-id " + sourcePath + " --output-dir /data";
+            try {
+                runCommand(command);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+            return true;
         }
 
         public boolean uploadTo(String destPath, Path sourceFile, Optional<String> metadata) {
             throw new UnsupportedOperationException("ICGC storage client upload not implemented yet");
+        }
+
+        private void runCommand(String command) throws IOException, InterruptedException {
+            ProcessBuilder builder = new ProcessBuilder();
+            builder.command(command.split("\\s+"));
+            builder.directory(new File(System.getProperty("user.home")));
+            Process process = builder.start();
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                System.err.println("Could not execute the command: " + command);
+                System.exit(1);
+            }
+        }
+
+        /**
+         * Get the ICGC DCC key
+         * @return  The ICGC DCC key
+         */
+        private String getKey() {
+            if (config.containsKey(DCC_CLIENT_KEY)) {
+                return config.get(DCC_CLIENT_KEY);
+            } else {
+                System.err.println("Need an access token specified in the [dockstore-file-icgc-storage-client-plugin] section of the ~/.dockstore/config file");
+                System.err.println("Should look like \"client-key = <YOUR ACCESS TOKEN>\"");
+                System.exit(1);
+                return null;
+            }
         }
 
     }
