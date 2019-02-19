@@ -14,5 +14,5 @@
  *    limitations under the License.
  */
 
-package io.dockstore.provision;
+package io.dockstore.language;
 
