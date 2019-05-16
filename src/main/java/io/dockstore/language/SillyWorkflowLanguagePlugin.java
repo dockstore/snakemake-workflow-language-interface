@@ -52,16 +52,6 @@ public class SillyWorkflowLanguagePlugin implements RecommendedLanguageInterface
     }
 
     @Override
-    public String shortName() {
-        return "SWL";
-    }
-
-    @Override
-    public String longName() {
-        return "Silly workflow language";
-    }
-
-    @Override
     public Pattern initialPathPattern() {
         return Pattern.compile("/.*\\.swl");
     }

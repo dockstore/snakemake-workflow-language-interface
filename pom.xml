@@ -10,7 +10,7 @@
 
     <properties>
         <github.url>scm:git:git@github.com:dockstore/silly-workflow-language-interface.git</github.url>
-        <dockstore.version>1.6.0-alpha.7-SNAPSHOT</dockstore.version>
+        <dockstore.version>1.7.0-alpha.5-SNAPSHOT</dockstore.version>
     </properties>
 
     <distributionManagement>
