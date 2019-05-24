@@ -61,9 +61,9 @@ public class SillyWorkflowLanguagePlugin implements RecommendedLanguageInterface
         Map<String, Pair<String, GenericFileType>> results = new HashMap<>();
         for(String line : contents.split("\\r?\\n")) {
             if (line.startsWith("import")) {
-                final String[] s = line.split(" ");
-                final String importedFile = reader.readFile(s[1]);
-                results.put(s[1], new ImmutablePair<>(importedFile, GenericFileType.IMPORTED_DESCRIPTOR));
+                final String[] s = line.split(":");
+                final String importedFile = reader.readFile(s[1].trim());
+                results.put(s[1].trim(), new ImmutablePair<>(importedFile, GenericFileType.IMPORTED_DESCRIPTOR));
             }
         }
         return results;
@@ -75,12 +75,12 @@ public class SillyWorkflowLanguagePlugin implements RecommendedLanguageInterface
         WorkflowMetadata metadata = new WorkflowMetadata();
         for(String line : contents.split("\\r?\\n")) {
             if (line.startsWith("author")) {
-                final String[] s = line.split(" ");
-                metadata.setAuthor(s[1]);
+                final String[] s = line.split(":");
+                metadata.setAuthor(s[1].trim());
             }
             if (line.startsWith("description")) {
-                final String[] s = line.split(" ");
-                metadata.setDescription(s[1]);
+                final String[] s = line.split(":");
+                metadata.setDescription(s[1].trim());
             }
         }
         return metadata;
