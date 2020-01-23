@@ -16,74 +16,101 @@
 package io.dockstore.language;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import io.dockstore.common.DescriptorLanguage;
 import io.dockstore.common.VersionTypeValidation;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.pf4j.Extension;
+import org.pf4j.Plugin;
+import org.pf4j.PluginWrapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author dyuen
  */
-public class SillyWorkflowLanguagePlugin implements RecommendedLanguageInterface {
+public class SillyWorkflowLanguagePlugin extends Plugin {
 
-    @Override
-    public String launchInstructions(String trsID) {
-        return null;
+    public static final Logger LOG = LoggerFactory.getLogger(SillyWorkflowLanguagePlugin.class);
+
+
+    /**
+     * Constructor to be used by plugin manager for plugin instantiation. Your plugins have to provide
+     * constructor with this exact signature to be successfully loaded by manager.
+     *
+     * @param wrapper
+     */
+    public SillyWorkflowLanguagePlugin(PluginWrapper wrapper) {
+        super(wrapper);
     }
 
-    @Override
-    public VersionTypeValidation validateWorkflowSet(String initialPath, String contents,
-        Map<String, Pair<String, GenericFileType>> indexedFiles) {
-        VersionTypeValidation validation = new VersionTypeValidation(true, new HashMap<>());
-        for(String line : contents.split("\\r?\\n")) {
-            if (!line.startsWith("import") && !line.startsWith("author") && !line.startsWith("description")) {
-                validation.setValid(false);
-                validation.getMessage().put(initialPath, "unknown keyword");
-            }
+    @Extension
+    public static class SillyWorkflowLanguagePluginImpl implements RecommendedLanguageInterface {
+
+        @Override
+        public String launchInstructions(String trsID) {
+            return null;
         }
-        return validation;
-    }
 
-    @Override
-    public VersionTypeValidation validateTestParameterSet(Map<String, Pair<String, GenericFileType>> indexedFiles) {
-        return new VersionTypeValidation(true, new HashMap<>());
-    }
-
-    @Override
-    public Pattern initialPathPattern() {
-        return Pattern.compile("/.*\\.swl");
-    }
-
-    @Override
-    public Map<String, Pair<String, GenericFileType>> indexWorkflowFiles(String initialPath, String contents, FileReader reader) {
-        Map<String, Pair<String, GenericFileType>> results = new HashMap<>();
-        for(String line : contents.split("\\r?\\n")) {
-            if (line.startsWith("import")) {
-                final String[] s = line.split(":");
-                final String importedFile = reader.readFile(s[1].trim());
-                results.put(s[1].trim(), new ImmutablePair<>(importedFile, GenericFileType.IMPORTED_DESCRIPTOR));
+        @Override
+        public VersionTypeValidation validateWorkflowSet(String initialPath, String contents, Map<String, Pair<String, GenericFileType>> indexedFiles) {
+            VersionTypeValidation validation = new VersionTypeValidation(true, new HashMap<>());
+            for (String line : contents.split("\\r?\\n")) {
+                if (!line.startsWith("import") && !line.startsWith("author") && !line.startsWith("description")) {
+                    validation.setValid(false);
+                    validation.getMessage().put(initialPath, "unknown keyword");
+                }
             }
+            return validation;
         }
-        return results;
-    }
 
-    @Override
-    public WorkflowMetadata parseWorkflowForMetadata(String initialPath, String contents,
-        Map<String, Pair<String, GenericFileType>> indexedFiles) {
-        WorkflowMetadata metadata = new WorkflowMetadata();
-        for(String line : contents.split("\\r?\\n")) {
-            if (line.startsWith("author")) {
-                final String[] s = line.split(":");
-                metadata.setAuthor(s[1].trim());
-            }
-            if (line.startsWith("description")) {
-                final String[] s = line.split(":");
-                metadata.setDescription(s[1].trim());
-            }
+        @Override
+        public VersionTypeValidation validateTestParameterSet(Map<String, Pair<String, GenericFileType>> indexedFiles) {
+            return new VersionTypeValidation(true, new HashMap<>());
         }
-        return metadata;
+
+        @Override
+        public DescriptorLanguage getDescriptorLanguage() {
+            return DescriptorLanguage.SWL;
+        }
+
+        @Override
+        public Pattern initialPathPattern() {
+            return Pattern.compile("/.*\\.swl");
+        }
+
+        @Override
+        public Map<String, Pair<String, GenericFileType>> indexWorkflowFiles(String initialPath, String contents, FileReader reader) {
+            Map<String, Pair<String, GenericFileType>> results = new HashMap<>();
+            for (String line : contents.split("\\r?\\n")) {
+                if (line.startsWith("import")) {
+                    final String[] s = line.split(":");
+                    final String importedFile = reader.readFile(s[1].trim());
+                    results.put(s[1].trim(), new ImmutablePair<>(importedFile, GenericFileType.IMPORTED_DESCRIPTOR));
+                }
+            }
+            return results;
+        }
+
+        @Override
+        public WorkflowMetadata parseWorkflowForMetadata(String initialPath, String contents, Map<String, Pair<String, GenericFileType>> indexedFiles) {
+            WorkflowMetadata metadata = new WorkflowMetadata();
+            for (String line : contents.split("\\r?\\n")) {
+                if (line.startsWith("author")) {
+                    final String[] s = line.split(":");
+                    metadata.setAuthor(s[1].trim());
+                }
+                if (line.startsWith("description")) {
+                    final String[] s = line.split(":");
+                    metadata.setDescription(s[1].trim());
+                }
+            }
+            return metadata;
+        }
     }
 }
 
