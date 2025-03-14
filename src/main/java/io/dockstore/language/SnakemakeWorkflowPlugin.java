@@ -15,8 +15,14 @@
  */
 package io.dockstore.language;
 
+import com.google.common.collect.Sets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import io.dockstore.common.DescriptorLanguage;
@@ -30,9 +36,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author dyuen
  */
-public class SillyWorkflowLanguagePlugin extends Plugin {
+public class SnakemakeWorkflowPlugin extends Plugin {
 
-    public static final Logger LOG = LoggerFactory.getLogger(SillyWorkflowLanguagePlugin.class);
+    public static final Logger LOG = LoggerFactory.getLogger(SnakemakeWorkflowPlugin.class);
 
 
     /**
@@ -41,12 +47,12 @@ public class SillyWorkflowLanguagePlugin extends Plugin {
      *
      * @param wrapper
      */
-    public SillyWorkflowLanguagePlugin(PluginWrapper wrapper) {
+    public SnakemakeWorkflowPlugin(PluginWrapper wrapper) {
         super(wrapper);
     }
 
     @Extension
-    public static class SillyWorkflowLanguagePluginImpl implements RecommendedLanguageInterface {
+    public static class SnakemakeWorkflowPluginImpl implements RecommendedLanguageInterface {
 
         @Override
         public String launchInstructions(String trsID) {
@@ -73,8 +79,8 @@ public class SillyWorkflowLanguagePlugin extends Plugin {
 
 
         @Override
-        public io.dockstore.common.DescriptorLanguage getDescriptorLanguage() {
-            return null;
+        public DescriptorLanguage getDescriptorLanguage() {
+            return DescriptorLanguage.SMK;
         }
 
         @Override
@@ -93,7 +99,31 @@ public class SillyWorkflowLanguagePlugin extends Plugin {
                     results.put(s[1].trim(), new FileMetadata(importedFile, GenericFileType.IMPORTED_DESCRIPTOR, "1.0"));
                 }
             }
+            results.put(
+                initialPath,
+                //TODO: get real snakemake version number
+                new FileMetadata(contents, GenericFileType.IMPORTED_DESCRIPTOR, "1.0"));
+
+            List<String> ruleFiles = findRuleFiles(initialPath, reader);
+            for(String rule : ruleFiles) {
+                results.put(rule,  new FileMetadata(rule, GenericFileType.IMPORTED_DESCRIPTOR, null));
+            }
+
             return results;
+        }
+
+        protected List<String> findRuleFiles(final String initialPath, final FileReader reader) {
+
+            final int extensionPos = initialPath.lastIndexOf("/");
+            final String base = initialPath.substring(0, extensionPos);
+
+            final Path rules = Paths.get(base, "rules");
+            // listing files is more rate limit friendly (e.g. GitHub counts each 404 "miss" as an API
+            // call,
+            // but listing a directory can be free if previously requested/cached)
+            final Set<String> filenameset = Sets.newHashSet(reader.listFiles(rules.toString()));
+
+            return filenameset.stream().map(s -> "rules/" + s).toList();
         }
 
         @Override
