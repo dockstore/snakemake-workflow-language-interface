@@ -1,5 +1,6 @@
 package io.dockstore.language;
 
+import io.dockstore.language.MinimalLanguageInterface.FileMetadata;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +19,7 @@ public class SillyWorkflowLanguagePluginTest {
     public void testWorkflowParsing() {
         SillyWorkflowLanguagePlugin.SillyWorkflowLanguagePluginImpl plugin = new SillyWorkflowLanguagePlugin.SillyWorkflowLanguagePluginImpl();
         HttpFileReader reader = new HttpFileReader();
-        final Map<String, Pair<String, MinimalLanguageInterface.GenericFileType>> fileMap = plugin
+        final Map<String, FileMetadata> fileMap = plugin
             .indexWorkflowFiles("/Dockstore.swl", reader.readFile("Dockstore.swl"), reader);
         Assert.assertEquals(1, fileMap.size());
         Assert.assertTrue(fileMap.containsKey("foo.swl"));

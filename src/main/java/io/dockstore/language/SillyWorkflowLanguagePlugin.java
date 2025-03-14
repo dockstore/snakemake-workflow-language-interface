@@ -16,14 +16,11 @@
 package io.dockstore.language;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import io.dockstore.common.DescriptorLanguage;
 import io.dockstore.common.VersionTypeValidation;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.pf4j.Extension;
 import org.pf4j.Plugin;
 import org.pf4j.PluginWrapper;
@@ -56,8 +53,9 @@ public class SillyWorkflowLanguagePlugin extends Plugin {
             return null;
         }
 
+
         @Override
-        public VersionTypeValidation validateWorkflowSet(String initialPath, String contents, Map<String, Pair<String, GenericFileType>> indexedFiles) {
+        public VersionTypeValidation validateWorkflowSet(String initialPath, String contents, Map<String, FileMetadata> indexedFiles) {
             VersionTypeValidation validation = new VersionTypeValidation(true, new HashMap<>());
             for (String line : contents.split("\\r?\\n")) {
                 if (!line.startsWith("import") && !line.startsWith("author") && !line.startsWith("description")) {
@@ -69,13 +67,14 @@ public class SillyWorkflowLanguagePlugin extends Plugin {
         }
 
         @Override
-        public VersionTypeValidation validateTestParameterSet(Map<String, Pair<String, GenericFileType>> indexedFiles) {
+        public VersionTypeValidation validateTestParameterSet(Map<String, FileMetadata> indexedFiles) {
             return new VersionTypeValidation(true, new HashMap<>());
         }
 
+
         @Override
-        public DescriptorLanguage getDescriptorLanguage() {
-            return DescriptorLanguage.SWL;
+        public io.dockstore.common.DescriptorLanguage getDescriptorLanguage() {
+            return null;
         }
 
         @Override
@@ -84,20 +83,21 @@ public class SillyWorkflowLanguagePlugin extends Plugin {
         }
 
         @Override
-        public Map<String, Pair<String, GenericFileType>> indexWorkflowFiles(String initialPath, String contents, FileReader reader) {
-            Map<String, Pair<String, GenericFileType>> results = new HashMap<>();
+        public Map<String, FileMetadata> indexWorkflowFiles(String initialPath, String contents, FileReader reader) {
+            Map<String, FileMetadata> results = new HashMap<>();
             for (String line : contents.split("\\r?\\n")) {
                 if (line.startsWith("import")) {
                     final String[] s = line.split(":");
                     final String importedFile = reader.readFile(s[1].trim());
-                    results.put(s[1].trim(), new ImmutablePair<>(importedFile, GenericFileType.IMPORTED_DESCRIPTOR));
+                    // use real language version
+                    results.put(s[1].trim(), new FileMetadata(importedFile, GenericFileType.IMPORTED_DESCRIPTOR, "1.0"));
                 }
             }
             return results;
         }
 
         @Override
-        public WorkflowMetadata parseWorkflowForMetadata(String initialPath, String contents, Map<String, Pair<String, GenericFileType>> indexedFiles) {
+        public WorkflowMetadata parseWorkflowForMetadata(String initialPath, String contents, Map<String, FileMetadata> indexedFiles) {
             WorkflowMetadata metadata = new WorkflowMetadata();
             for (String line : contents.split("\\r?\\n")) {
                 if (line.startsWith("author")) {
