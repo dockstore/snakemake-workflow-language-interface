@@ -29,6 +29,7 @@ public class SnakemakeWorkflowPluginTest {
             plugin.indexWorkflowFiles(initialPath, contents, reader);
 
         assertFalse(fileMap.isEmpty());
+        assertTrue(fileMap.containsKey("README.md"));
     }
 
     @Test
@@ -43,6 +44,9 @@ public class SnakemakeWorkflowPluginTest {
 
         assertFalse(fileMap.isEmpty());
         assertTrue(fileMap.containsKey("workflow/rules/align.smk"));
+        // TODO recursion, may need to update the plugin handler in dockstore itself
+        // assertTrue(fileMap.containsKey(".test/config_basic/config.yaml"));
+        assertTrue(fileMap.containsKey("LICENSE"));
     }
 
     abstract static class URLFileReader implements MinimalLanguageInterface.FileReader {

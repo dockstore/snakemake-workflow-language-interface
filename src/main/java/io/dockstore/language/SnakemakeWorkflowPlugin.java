@@ -91,11 +91,14 @@ public class SnakemakeWorkflowPlugin extends Plugin {
         @Override
         public Map<String, FileMetadata> indexWorkflowFiles(String initialPath, String contents, FileReader reader) {
             Map<String, FileMetadata> results = new HashMap<>();
-            // start with the catalog
+            // start with the catalog, some notes on workflow structure at https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html
             results.put(
                 initialPath,
                 //TODO: get real snakemake version number, if they have one
                 new FileMetadata(contents, GenericFileType.IMPORTED_DESCRIPTOR, "1.0"));
+            // there can be  licenses, readme files and other useful stuff in the root
+            processFolder(initialPath, null, reader, results);
+
 
             // Snakefile might be in same directory as catalog file or up in a workflow directory (a workflow directory will have other folders), is not named in the catalog file
             processFolder(initialPath, "workflow", reader, results);
@@ -104,6 +107,16 @@ public class SnakemakeWorkflowPlugin extends Plugin {
             }
             // sometimes there is a config folder
             processFolder(initialPath, "config", reader, results);
+            // there are results and resources folders, developers are encouraged to keep the latter small
+            // processFolder(initialPath, "results", reader, results);
+            processFolder(initialPath, "resources", reader, results);
+
+            /// TODO modules support
+
+            // workflow hub extensions
+            // TODO will need to be recursive
+            processFolder(initialPath, ".tests", reader, results);
+
 
             return results;
         }
@@ -114,27 +127,29 @@ public class SnakemakeWorkflowPlugin extends Plugin {
             processFolder(initialPath, "workflow/rules", reader, results);
             processFolder(initialPath, "workflow/schemas", reader, results);
             processFolder(initialPath, "workflow/scripts", reader, results);
+            processFolder(initialPath, "workflow/notebooks", reader, results);
         }
 
-        private void processFolder(String initialPath, String folder,FileReader reader, Map<String, FileMetadata> results) {
+        private void processFolder(String initialPath, String folder, FileReader reader, Map<String, FileMetadata> results) {
             List<String> files = findFiles(initialPath, folder, reader);
-            for(String file : files) {
-                results.put(file,  new FileMetadata(file, GenericFileType.IMPORTED_DESCRIPTOR, null));
+            for (String file : files) {
+                results.put(file, new FileMetadata(file, GenericFileType.IMPORTED_DESCRIPTOR, null));
             }
         }
 
         // TODO: folderToCheck should probably be dealt with recursively
+        // TODO: use typed files instead of FileUtils from Apache (Galaxy plugin)
         protected List<String> findFiles(final String initialPath, final String folderToCheck, final FileReader reader) {
 
             final int extensionPos = initialPath.lastIndexOf("/");
             final String base = initialPath.substring(0, extensionPos);
 
-            final Path rules = Paths.get(base, folderToCheck);
+            final Path rules = folderToCheck == null ? Paths.get(base) : Paths.get(base, folderToCheck);
             // listing files is more rate limit friendly (e.g. GitHub counts each 404 "miss" as an API
             // call,
             // but listing a directory can be free if previously requested/cached)
             final Set<String> filenameSet = Sets.newHashSet(reader.listFiles(rules.toString()));
-            return filenameSet.stream().map(s ->  folderToCheck + "/" + s).toList();
+            return filenameSet.stream().map(s ->  (folderToCheck == null ? "" : folderToCheck + "/") + s).toList();
         }
 
         @Override
