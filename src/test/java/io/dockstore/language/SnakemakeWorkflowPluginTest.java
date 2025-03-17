@@ -5,9 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.Resources;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -26,7 +23,7 @@ public class SnakemakeWorkflowPluginTest {
         final SnakemakeWorkflowPlugin.SnakemakeWorkflowPluginImpl plugin =
             new SnakemakeWorkflowPlugin.SnakemakeWorkflowPluginImpl();
         final ResourceFileReader reader = new ResourceFileReader("nathanhaigh/snakemake-hello-world");
-        final String initialPath = "/Snakefile";
+        final String initialPath = "/.snakemake-workflow-catalog.yml";
         final String contents = reader.readFile(initialPath);
         final Map<String, MinimalLanguageInterface.FileMetadata> fileMap =
             plugin.indexWorkflowFiles(initialPath, contents, reader);
@@ -39,29 +36,13 @@ public class SnakemakeWorkflowPluginTest {
         final SnakemakeWorkflowPlugin.SnakemakeWorkflowPluginImpl plugin =
             new SnakemakeWorkflowPlugin.SnakemakeWorkflowPluginImpl();
         final ResourceFileReader reader = new ResourceFileReader("snakemake-workflows/rna-seq-star-deseq2");
-        final String initialPath = "workflow/Snakefile";
+        final String initialPath = "/.snakemake-workflow-catalog.yml";
         final String contents = reader.readFile(initialPath);
         final Map<String, MinimalLanguageInterface.FileMetadata> fileMap =
             plugin.indexWorkflowFiles(initialPath, contents, reader);
 
         assertFalse(fileMap.isEmpty());
-        assertTrue(fileMap.containsKey("rules/align.smk"));
-    }
-
-    public static class HttpFileReader implements MinimalLanguageInterface.FileReader {
-        @Override
-        public String readFile(String path) {
-            try {
-                return Resources.toString(new URL("https://raw.githubusercontent.com/dockstore-testing/silly-example/master/" + path), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public List<String> listFiles(String pathToDirectory) {
-            return Lists.newArrayList("Dockstore.cwl", "README.md", "foo.swl");
-        }
+        assertTrue(fileMap.containsKey("workflow/rules/align.smk"));
     }
 
     abstract static class URLFileReader implements MinimalLanguageInterface.FileReader {
@@ -100,18 +81,8 @@ public class SnakemakeWorkflowPluginTest {
             if (id.isEmpty()) {
                 return new ArrayList<>();
             }
-            Gson gson = new GsonBuilder().create();
-            try {
-                // TODO can grab actual directory listing to avoid using listing.json files
-                final String fileContent =
-                    FileUtils.readFileToString(
-                        new File("src/test/resources/io/dockstore/language/" + this.id.get() + "/" + pathToDirectory + "/listing.json"),
-                        StandardCharsets.UTF_8);
-                return gson.fromJson(
-                    fileContent, TypeToken.getParameterized(List.class, String.class).getType());
-            } catch (IOException e) {
-                return Lists.newArrayList();
-            }
+            String fileDirectory = "src/test/resources/io/dockstore/language/" + this.id.get() + "/" + pathToDirectory;
+            return FileUtils.listFiles(new File(fileDirectory), null, false).stream().map(f -> f.getName()).toList();
         }
     }
 
