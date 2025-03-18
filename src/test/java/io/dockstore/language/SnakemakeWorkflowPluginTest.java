@@ -47,6 +47,9 @@ public class SnakemakeWorkflowPluginTest {
         // TODO recursion, may need to update the plugin handler in dockstore itself
         // assertTrue(fileMap.containsKey(".test/config_basic/config.yaml"));
         assertTrue(fileMap.containsKey("LICENSE"));
+        assertTrue(fileMap.get("LICENSE").content().contains("The above copyright notice and this permission notice shall be included in all"));
+        assertTrue(fileMap.containsKey("LICENSE"));
+        assertTrue(fileMap.get("workflow/rules/align.smk").content().contains("3.5.3/bio/star/align"));
     }
 
     abstract static class URLFileReader implements MinimalLanguageInterface.FileReader {

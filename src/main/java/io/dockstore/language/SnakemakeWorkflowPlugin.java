@@ -15,6 +15,7 @@
  */
 package io.dockstore.language;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,13 +63,7 @@ public class SnakemakeWorkflowPlugin extends Plugin {
         @Override
         public VersionTypeValidation validateWorkflowSet(String initialPath, String contents, Map<String, FileMetadata> indexedFiles) {
             VersionTypeValidation validation = new VersionTypeValidation(true, new HashMap<>());
-            // TODO hook up some real validation, this is carried over from SWL
-            for (String line : contents.split("\\r?\\n")) {
-                if (!line.startsWith("import") && !line.startsWith("author") && !line.startsWith("description")) {
-                    validation.setValid(false);
-                    validation.getMessage().put(initialPath, "unknown keyword");
-                }
-            }
+            // TODO hook up some real validation
             return validation;
         }
 
@@ -133,7 +128,7 @@ public class SnakemakeWorkflowPlugin extends Plugin {
         private void processFolder(String initialPath, String folder, FileReader reader, Map<String, FileMetadata> results) {
             List<String> files = findFiles(initialPath, folder, reader);
             for (String file : files) {
-                results.put(file, new FileMetadata(file, GenericFileType.IMPORTED_DESCRIPTOR, null));
+                results.put(file, new FileMetadata(reader.readFile(file), GenericFileType.IMPORTED_DESCRIPTOR, null));
             }
         }
 
@@ -148,7 +143,11 @@ public class SnakemakeWorkflowPlugin extends Plugin {
             // listing files is more rate limit friendly (e.g. GitHub counts each 404 "miss" as an API
             // call,
             // but listing a directory can be free if previously requested/cached)
-            final Set<String> filenameSet = Sets.newHashSet(reader.listFiles(rules.toString()));
+            List<String> strings = reader.listFiles(rules.toString());
+            if (strings == null) {
+                return Lists.newArrayList();
+            }
+            final Set<String> filenameSet = Sets.newHashSet(strings);
             return filenameSet.stream().map(s ->  (folderToCheck == null ? "" : folderToCheck + "/") + s).toList();
         }
 
